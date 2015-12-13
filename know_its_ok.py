@@ -11,9 +11,9 @@ def main():
     """
     cli_args = sys.argv[1:]
     repo_dir = discover_repository()
-    tests = discover_tests(repo_dir)
+    test_dir, tests = discover_tests(repo_dir)
     cli_args, tests = pick_tests(cli_args, tests)
-    success = run_pytest(repo_dir, cli_args, tests)
+    success = run_pytest(repo_dir, test_dir, cli_args, tests)
     sys.exit(success)
 
 def discover_repository():
@@ -49,7 +49,8 @@ def discover_tests(repo_dir):
     test_dir = os.path.join(repo_dir, 'tests')
     if not os.path.isdir(test_dir):
         raise ValueError("couldn't find tests/ directory")
-    return [os.path.basename(x)
+    return test_dir, [
+            os.path.basename(x)
             for x in os.listdir(test_dir)
             if test_pattern.match(x)]
 
@@ -86,7 +87,7 @@ def sort_tests(tests):
     """
     return sorted(tests)
 
-def run_pytest(repo_dir, cli_args, tests):
+def run_pytest(repo_dir, test_dir, cli_args, tests):
     """
     Run pytest in the right directory.  
     
@@ -106,7 +107,6 @@ def run_pytest(repo_dir, cli_args, tests):
     from signal import signal, SIGPIPE, SIG_DFL
     signal(SIGPIPE, SIG_DFL)
 
-    test_dir = os.path.join(repo_dir, 'tests')
     os.chdir(test_dir)
     return pytest.main(args)
 
