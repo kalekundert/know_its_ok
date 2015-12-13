@@ -7,6 +7,8 @@ if [ "$#" != 1 ]; then
     exit 1
 fi
 
+git pull
 bumpversion $1
+git push && git push --tags
 python setup.py sdist upload -r pypi
 
