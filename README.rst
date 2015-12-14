@@ -43,7 +43,7 @@ the organization of your code.  In particular:
 1. Your code must be version controlled using ``git``.
 2. Your tests must be stored in a directory called ``tests/``, which itself 
    must be located in the top level of your repository.
-3. Inside the ``tests/'' directory, your tests must match the pattern: 
+3. Inside the ``tests/`` directory, your tests must match the pattern: 
    ``??_test_*.py``.
 4. Your tests must be written using the ``pytest`` framework.
 5. Your package must be located in a directory containing and ``__init__.py`` 
