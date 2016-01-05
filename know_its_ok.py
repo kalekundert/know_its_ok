@@ -3,7 +3,6 @@
 import sys, os, re, subprocess, pytest
 
 __version__ = '0.2.0'
-test_pattern = re.compile(r'\d{2}_test_.+\.py')
 
 def main():
     """
@@ -46,13 +45,33 @@ def discover_tests(repo_dir):
     the glob ``??_test_*.py``.  If the tests directory doesn't exist in the 
     expected location, an exception will be raised.
     """
+
+    # Find the directory where the tests should be relative to the root of the 
+    # repository.
+
     test_dir = os.path.join(repo_dir, 'tests')
+
     if not os.path.isdir(test_dir):
         raise ValueError("couldn't find tests/ directory")
-    return test_dir, [
-            os.path.basename(x)
-            for x in os.listdir(test_dir)
-            if test_pattern.match(x)]
+
+    # Run pytest with the ``--collect-only`` flag to generate a list of all the 
+    # modules that would be run by pytest.
+
+    with open(os.devnull, 'w') as null:
+        command = 'py.test', '--collect-only', test_dir
+        stdout = subprocess.check_output(command, stderr=null).decode('utf-8')
+
+    # Parse the output to create a list of the files that will be tested.
+
+    test_paths = []
+    test_path_pattern = re.compile("<Module '(.*)'>")
+
+    for line in stdout.split('\n'):
+        test_path_match = test_path_pattern.match(line.strip())
+        if test_path_match:
+            test_paths.append(test_path_match.group(1))
+
+    return test_dir, test_paths
 
 def pick_tests(cli_args, tests):
     """
@@ -74,8 +93,8 @@ def pick_tests(cli_args, tests):
         for arg in cli_args:
             if arg in test:
                 matched_tests.append(test)
-                cli_args.remove(arg)
-            
+                pytest_args.remove(arg)
+
     return pytest_args, matched_tests or tests
     
 def sort_tests(tests):
