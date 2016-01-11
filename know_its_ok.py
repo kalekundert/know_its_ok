@@ -133,7 +133,6 @@ def deduce_package_name(repo_dir):
     file.  When such a directory is found, its name is immediately returned.  
     If no suitable directory  is found, a ValueError is raised.
     """
-
     egg_info = glob.glob(os.path.join(repo_dir, '*.egg-info'))
 
     if len(egg_info) == 0:
