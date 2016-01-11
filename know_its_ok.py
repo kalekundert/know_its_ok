@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import sys, os, re, subprocess, pytest
+import sys, os, re, glob, subprocess, pytest
 
 __version__ = '0.4.1'
 
@@ -38,12 +38,7 @@ def discover_repository():
 
 def discover_tests(repo_dir):
     """
-    Return the names of all the test scripts.
-
-    Test scripts must be located in ``<repo>/tests`` and must follow the 
-    pattern defined by ``test_pattern``.  By default, this pattern is roughly 
-    the glob ``??_test_*.py``.  If the tests directory doesn't exist in the 
-    expected location, an exception will be raised.
+    Return the names of all the test scripts known to pytest.
     """
 
     # Find the directory where the tests should be relative to the root of the 
@@ -138,8 +133,13 @@ def deduce_package_name(repo_dir):
     file.  When such a directory is found, its name is immediately returned.  
     If no suitable directory  is found, a ValueError is raised.
     """
-    for root, dirs, files in os.walk(repo_dir):
-        if '__init__.py' in files:
-            return os.path.basename(root)
-    raise ValueError("couldn't find ``__init__.py``")
+
+    egg_info = glob.glob(os.path.join(repo_dir, '*.egg-info'))
+
+    if len(egg_info) == 0:
+        raise ValueError("couldn't find any *.egg-info files.  Did you run 'pip install'?")
+    if len(egg_info) > 1:
+        raise ValueError("found multiple *.egg-info files, couldn't deduce package name.")
+
+    return os.path.splitext(os.path.basename(egg_info[0]))[0]
 
